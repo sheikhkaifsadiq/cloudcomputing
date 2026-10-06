@@ -57,10 +57,20 @@ def chat(request: ChatRequest):
         )
         
         last_msg = result["messages"][-1]
+        
+        message_content = "Processing your request..."
+        if hasattr(last_msg, "content") and last_msg.content:
+            if isinstance(last_msg.content, list):
+                # Gemini often returns a list of chunks, e.g. [{'type': 'text', 'text': 'Hello'}]
+                texts = [chunk.get("text", "") for chunk in last_msg.content if isinstance(chunk, dict) and "text" in chunk]
+                message_content = " ".join(texts) if texts else str(last_msg.content)
+            else:
+                message_content = str(last_msg.content)
+                
         action = get_action_from_result(result)
             
         return ChatResponse(
-            message=last_msg.content if hasattr(last_msg, "content") and last_msg.content else "Processing your request...",
+            message=message_content,
             status=result.get("status", "completed"),
             action=action,
             requires_approval=result.get("requires_approval", False)
