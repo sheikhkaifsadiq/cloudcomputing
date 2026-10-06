@@ -63,7 +63,7 @@ export default function App() {
       
       fetchHistory()
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'ai', content: "I couldn't connect to the backend. Please try again." }])
+      setMessages(prev => [...prev, { role: 'ai', content: "I couldn't connect to the backend. Please try again.", isError: true }])
     } finally {
       setLoading(false)
     }
@@ -98,7 +98,7 @@ export default function App() {
       
       fetchHistory()
     } catch (e) {
-      setMessages(prev => [...prev, { role: 'ai', content: 'Failed to process action. Please try again.' }])
+      setMessages(prev => [...prev, { role: 'ai', content: 'Failed to process action. Please try again.', isError: true }])
     } finally {
       setLoading(false)
     }
@@ -110,11 +110,11 @@ export default function App() {
         <h2>History</h2>
         <div className="history-list">
           {history.length === 0 ? (
-            <p style={{color: 'var(--text-light)', fontSize: '0.85rem'}}>No operations yet.</p>
+            <p style={{color: 'var(--text-muted)', fontSize: '0.9rem', fontStyle: 'italic'}}>No operations yet.</p>
           ) : (
             history.map(item => (
               <div key={item.id} className={`history-item status-${item.status}`}>
-                <div className="op">{item.operation} {item.entity}</div>
+                <div className="op">{item.operation} <span style={{opacity: 0.7}}>•</span> {item.entity}</div>
                 <div className="target">{item.target}</div>
                 <div className="status">{item.status}</div>
               </div>
@@ -125,18 +125,20 @@ export default function App() {
 
       <main className="main-chat">
         <div className="chat-header">
-          <h2>HM2 Assistant</h2>
+          <h2>Nexus AI Orchestrator</h2>
         </div>
         
         <div className="messages">
           {messages.length === 0 && (
-            <div style={{color: 'var(--text-light)', textAlign: 'center', marginTop: '40px'}}>
-              Ask HM2 to manage employee data...
+            <div style={{color: 'var(--text-muted)', textAlign: 'center', margin: 'auto', fontSize: '1.1rem', maxWidth: '400px', lineHeight: '1.6'}}>
+              Welcome to the Nexus AI Agent. 
+              <br/><br/>
+              I am connected directly to your Supabase instance. Ask me to read, create, update, or delete employee data.
             </div>
           )}
           
           {messages.map((msg, i) => (
-            <div key={i} className={`message ${msg.role}`}>
+            <div key={i} className={`message ${msg.role} ${msg.isError ? 'error' : ''}`}>
               {msg.role === 'user' ? (
                 <div>{msg.content}</div>
               ) : (
@@ -157,7 +159,7 @@ export default function App() {
             </div>
           ))}
           {loading && (
-            <div className="message ai">
+            <div className="message ai" style={{alignSelf: 'flex-start', background: 'transparent', border: 'none'}}>
               <div className="dot-loading">
                 <span></span><span></span><span></span>
               </div>
@@ -169,13 +171,14 @@ export default function App() {
         <form className="input-area" onSubmit={handleSend}>
           <input 
             type="text" 
-            placeholder="Ask HM2 to manage employee data... ➤" 
+            placeholder="Type your command here... (e.g. 'delete ali')" 
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={loading}
+            autoFocus
           />
           <button type="submit" className="primary send-btn" disabled={loading || !input.trim()}>
-            Send
+            Send Request
           </button>
         </form>
       </main>
@@ -189,30 +192,30 @@ function ApprovalCard({ action, onApprove, onDecline, onDetails, loading }) {
 
   return (
     <div className="approval-card">
-      <h3>Action requires approval</h3>
+      <h3>Security Gate Activated</h3>
       <div className="approval-details">
         <p><strong>Operation:</strong> {action?.operation?.toUpperCase()}</p>
         <p><strong>Target:</strong> {action?.filters && typeof action.filters === 'object' ? Object.values(action.filters).join(' · ') : (action?.target || 'unknown')}</p>
-        <p style={{marginTop: '8px', color: 'var(--text-light)'}}>This action will permanently remove the record.</p>
+        <p style={{marginTop: '12px', color: 'var(--danger-color)', fontSize: '0.85rem', fontWeight: 500}}>⚠️ This is a destructive action that will permanently alter the database.</p>
       </div>
       
       {!showDetailsInput ? (
         <div className="approval-actions">
-          <button className="danger" onClick={onApprove} disabled={loading}>Approve</button>
-          <button onClick={onDecline} disabled={loading}>Decline</button>
-          <button onClick={() => setShowDetailsInput(true)} disabled={loading}>Add Details</button>
+          <button className="danger" onClick={onApprove} disabled={loading}>Authorize Action</button>
+          <button onClick={onDecline} disabled={loading}>Deny</button>
+          <button onClick={() => setShowDetailsInput(true)} disabled={loading}>Provide Details</button>
         </div>
       ) : (
         <div className="details-input">
           <input 
             type="text" 
-            placeholder="Additional details..." 
+            placeholder="E.g., Only delete the one in IT..." 
             value={detailsText}
             onChange={e => setDetailsText(e.target.value)}
             autoFocus
           />
           <div className="approval-actions">
-            <button className="primary" onClick={() => onDetails(detailsText)} disabled={loading || !detailsText.trim()}>Submit</button>
+            <button className="primary" onClick={() => onDetails(detailsText)} disabled={loading || !detailsText.trim()}>Confirm Refinement</button>
             <button onClick={() => setShowDetailsInput(false)} disabled={loading}>Cancel</button>
           </div>
         </div>
