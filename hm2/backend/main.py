@@ -49,22 +49,25 @@ def chat(request: ChatRequest):
     logger.info(f"Chat request received: {request.message}")
     config = {"configurable": {"thread_id": request.conversation_id}}
     
-    # Run the graph
-    result = agent_executor.invoke(
-        {"messages": [HumanMessage(content=request.message)], "conversation_id": request.conversation_id},
-        config
-    )
-    
-    last_msg = result["messages"][-1]
-    
-    action = get_action_from_result(result)
+    try:
+        # Run the graph
+        result = agent_executor.invoke(
+            {"messages": [HumanMessage(content=request.message)], "conversation_id": request.conversation_id},
+            config
+        )
         
-    return ChatResponse(
-        message=last_msg.content if hasattr(last_msg, "content") and last_msg.content else "Processing your request...",
-        status=result.get("status", "completed"),
-        action=action,
-        requires_approval=result.get("requires_approval", False)
-    )
+        last_msg = result["messages"][-1]
+        action = get_action_from_result(result)
+            
+        return ChatResponse(
+            message=last_msg.content if hasattr(last_msg, "content") and last_msg.content else "Processing your request...",
+            status=result.get("status", "completed"),
+            action=action,
+            requires_approval=result.get("requires_approval", False)
+        )
+    except Exception as e:
+        logger.error(f"Error in chat endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/hitl/approve", response_model=ChatResponse)
 def hitl_approve(request: HitlApproveRequest):
