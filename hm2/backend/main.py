@@ -26,6 +26,14 @@ def get_action_from_result(result):
         )
     return None
 
+def extract_message(last_msg):
+    if hasattr(last_msg, "content") and last_msg.content:
+        if isinstance(last_msg.content, list):
+            texts = [chunk.get("text", "") for chunk in last_msg.content if isinstance(chunk, dict) and "text" in chunk]
+            return " ".join(texts) if texts else str(last_msg.content)
+        return str(last_msg.content)
+    return "Processing your request..."
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -58,14 +66,7 @@ def chat(request: ChatRequest):
         
         last_msg = result["messages"][-1]
         
-        message_content = "Processing your request..."
-        if hasattr(last_msg, "content") and last_msg.content:
-            if isinstance(last_msg.content, list):
-                # Gemini often returns a list of chunks, e.g. [{'type': 'text', 'text': 'Hello'}]
-                texts = [chunk.get("text", "") for chunk in last_msg.content if isinstance(chunk, dict) and "text" in chunk]
-                message_content = " ".join(texts) if texts else str(last_msg.content)
-            else:
-                message_content = str(last_msg.content)
+        message_content = extract_message(last_msg)
                 
         action = get_action_from_result(result)
             
@@ -86,7 +87,7 @@ def hitl_approve(request: HitlApproveRequest):
         result = resume_workflow(request.conversation_id, action_approved=True)
         last_msg = result["messages"][-1]
         return ChatResponse(
-            message=last_msg.content,
+            message=extract_message(last_msg),
             status=result.get("status", "completed"),
             action=get_action_from_result(result),
             requires_approval=result.get("requires_approval", False)
@@ -102,7 +103,7 @@ def hitl_decline(request: HitlDeclineRequest):
         result = resume_workflow(request.conversation_id, action_approved=False)
         last_msg = result["messages"][-1]
         return ChatResponse(
-            message=last_msg.content,
+            message=extract_message(last_msg),
             status=result.get("status", "completed"),
             action=get_action_from_result(result),
             requires_approval=result.get("requires_approval", False)
@@ -118,7 +119,7 @@ def hitl_details(request: HitlDetailsRequest):
         result = resume_workflow(request.conversation_id, action_approved=False, additional_details=request.details)
         last_msg = result["messages"][-1]
         return ChatResponse(
-            message=last_msg.content,
+            message=extract_message(last_msg),
             status=result.get("status", "completed"),
             action=get_action_from_result(result),
             requires_approval=result.get("requires_approval", False)
