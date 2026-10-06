@@ -1,0 +1,23 @@
+name: Keep Alive Vercel & Render
+
+on:
+  schedule:
+    # Runs every 10 minutes
+    - cron: '*/10 * * * *'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Frontend (Vercel)
+        run: |
+          # Replace the URL below with your actual Vercel frontend URL
+          curl -s -o /dev/null -w "%{http_code}" https://your-frontend-project.vercel.app || echo "Failed to ping frontend"
+
+      - name: Ping Backend (Render)
+        run: |
+          # Replace the URL below with your actual Render backend URL
+          # Using the /api/health endpoint defined in your backend
+          curl -s -o /dev/null -w "%{http_code}" https://your-backend-project.onrender.com/api/health || echo "Failed to ping backend"
