@@ -1,0 +1,22 @@
+version: 2
+updates:
+  # This repo holds multiple homeworks; scope npm updates to hm1 only.
+  - package-ecosystem: "npm"
+    directory: "/hm1"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+      build-tooling:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
