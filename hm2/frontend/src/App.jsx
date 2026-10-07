@@ -11,9 +11,23 @@ function MermaidChart({ chart }) {
   
   useEffect(() => {
     if (chartRef.current && chart) {
-      mermaid.render(`mermaid-${Math.random().toString(36).substr(2, 9)}`, chart).then((res) => {
-        chartRef.current.innerHTML = res.svg
-      })
+      const hiddenContainer = document.createElement('div')
+      hiddenContainer.style.position = 'absolute'
+      hiddenContainer.style.visibility = 'hidden'
+      hiddenContainer.style.top = '-9999px'
+      document.body.appendChild(hiddenContainer)
+
+      mermaid.render(`mermaid-${Math.random().toString(36).substr(2, 9)}`, chart, hiddenContainer)
+        .then((res) => {
+          if (chartRef.current) {
+            chartRef.current.innerHTML = res.svg
+          }
+        })
+        .finally(() => {
+          if (hiddenContainer.parentNode) {
+            hiddenContainer.parentNode.removeChild(hiddenContainer)
+          }
+        })
     }
   }, [chart])
 
