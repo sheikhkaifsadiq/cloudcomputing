@@ -1,7 +1,24 @@
 import { useState, useEffect, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import mermaid from 'mermaid'
 import './index.css'
+
+mermaid.initialize({ startOnLoad: false, theme: 'default' })
+
+function MermaidChart({ chart }) {
+  const chartRef = useRef(null)
+  
+  useEffect(() => {
+    if (chartRef.current && chart) {
+      mermaid.render(`mermaid-${Math.random().toString(36).substr(2, 9)}`, chart).then((res) => {
+        chartRef.current.innerHTML = res.svg
+      })
+    }
+  }, [chart])
+
+  return <div className="mermaid-chart" ref={chartRef} />
+}
 
 function generateId() {
   return Math.random().toString(36).substr(2, 9)
@@ -194,7 +211,28 @@ export default function App() {
                   ) : (
                     <>
                       <div className="markdown-content">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        <ReactMarkdown 
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            code({node, inline, className, children, ...props}) {
+                              const match = /language-(\w+)/.exec(className || '')
+                              if (!inline && match && match[1] === 'mermaid') {
+                                return <MermaidChart chart={String(children).replace(/\n$/, '')} />
+                              }
+                              return !inline ? (
+                                <pre className={className} {...props}>
+                                  <code className={className} {...props}>
+                                    {children}
+                                  </code>
+                                </pre>
+                              ) : (
+                                <code className={className} {...props}>
+                                  {children}
+                                </code>
+                              )
+                            }
+                          }}
+                        >
                           {msg.content}
                         </ReactMarkdown>
                       </div>
