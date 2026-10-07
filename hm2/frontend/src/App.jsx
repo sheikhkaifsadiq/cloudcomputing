@@ -125,10 +125,15 @@ export default function App() {
   return (
     <div className="app-container">
       <aside className="sidebar">
-        <h2>Operation History</h2>
+        <h2>
+          <svg className="sidebar-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+          Operation History
+        </h2>
         <div className="history-list">
           {history.length === 0 ? (
-            <p style={{color: 'var(--text-tertiary)', fontSize: '0.85rem'}}>No recent operations.</p>
+            <p className="history-empty">No operations yet.<br/>Try asking me something.</p>
           ) : (
             history.map(item => (
               <div key={item.id} className={`history-item status-${item.status}`}>
@@ -143,15 +148,39 @@ export default function App() {
 
       <main className="main-chat">
         <div className="chat-header">
-          <h2>Database Agent</h2>
+          <div className="chat-header-left">
+            <div className="agent-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <div className="chat-header-text">
+              <h2>Database Agent</h2>
+              <span>Gemini · LangGraph · Supabase</span>
+            </div>
+          </div>
+          <div className="status-dot">Live</div>
         </div>
         
         <div className="messages-container">
           <div className="messages">
             {messages.length === 0 && (
-              <div style={{color: 'var(--text-secondary)', textAlign: 'center', margin: '60px auto', maxWidth: '400px'}}>
-                <h3 style={{color: 'var(--text-primary)', marginBottom: '12px'}}>How can I help you today?</h3>
-                <p style={{fontSize: '0.95rem', lineHeight: '1.5'}}>I am connected to the Supabase database. You can ask me to list, create, update, or safely delete employee records.</p>
+              <div className="empty-state">
+                <div className="empty-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                  </svg>
+                </div>
+                <h3>How can I help you?</h3>
+                <p>I'm connected to your Supabase database. Ask me to list, create, update, or safely delete employee records.</p>
+                <div className="suggestion-chips">
+                  {['Show all employees', 'Add a new employee', 'Show HR department', 'Delete an employee'].map(s => (
+                    <button key={s} className="chip" onClick={() => { setInput(s); textareaRef.current?.focus() }}>{s}</button>
+                  ))}
+                </div>
               </div>
             )}
             
