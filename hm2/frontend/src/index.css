@@ -45,7 +45,6 @@ body {
   background-color: var(--bg-main);
   color: var(--text-primary);
   height: 100vh;
-  display: flex;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
   /* Soft vibrant ambient background */
