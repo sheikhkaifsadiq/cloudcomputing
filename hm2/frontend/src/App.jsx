@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import mermaid from 'mermaid'
@@ -25,6 +25,26 @@ function generateId() {
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+
+const markdownComponents = {
+  code({node, inline, className, children, ...props}) {
+    const match = /language-(\w+)/.exec(className || '')
+    if (!inline && match && match[1] === 'mermaid') {
+      return <MermaidChart chart={String(children).replace(/\n$/, '')} />
+    }
+    return !inline ? (
+      <pre className={className} {...props}>
+        <code className={className} {...props}>
+          {children}
+        </code>
+      </pre>
+    ) : (
+      <code className={className} {...props}>
+        {children}
+      </code>
+    )
+  }
+}
 
 export default function App() {
   const [messages, setMessages] = useState([])
@@ -213,25 +233,7 @@ export default function App() {
                       <div className="markdown-content">
                         <ReactMarkdown 
                           remarkPlugins={[remarkGfm]}
-                          components={{
-                            code({node, inline, className, children, ...props}) {
-                              const match = /language-(\w+)/.exec(className || '')
-                              if (!inline && match && match[1] === 'mermaid') {
-                                return <MermaidChart chart={String(children).replace(/\n$/, '')} />
-                              }
-                              return !inline ? (
-                                <pre className={className} {...props}>
-                                  <code className={className} {...props}>
-                                    {children}
-                                  </code>
-                                </pre>
-                              ) : (
-                                <code className={className} {...props}>
-                                  {children}
-                                </code>
-                              )
-                            }
-                          }}
+                          components={markdownComponents}
                         >
                           {msg.content}
                         </ReactMarkdown>
