@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import './index.css'
 
 function generateId() {
@@ -191,7 +193,11 @@ export default function App() {
                     <div>{msg.content}</div>
                   ) : (
                     <>
-                      <div style={{whiteSpace: 'pre-wrap'}}>{msg.content}</div>
+                      <div className="markdown-content">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {msg.content}
+                        </ReactMarkdown>
+                      </div>
                       {msg.requiresApproval && (
                         <ApprovalCard 
                           action={msg.action} 
