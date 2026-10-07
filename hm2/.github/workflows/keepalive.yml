@@ -1,23 +1,47 @@
-name: Keep Supabase awake
+name: Keep Services Awake
 
-# Free Supabase projects pause after ~1 week of inactivity.
-# This pings the REST endpoint so the DB stays live. (Vercel static hosting
-# never sleeps, so nothing else needs pinging.)
+# Free tier services (like Render backends and Supabase databases) spin down after inactivity.
+# This workflow pings them every 10 minutes to keep them warm.
 on:
   schedule:
-    - cron: "*/10 * * * *"   # every 10 minutes (GitHub may delay under load)
+    - cron: "*/10 * * * *"   # every 10 minutes
   workflow_dispatch: {}
 
 jobs:
-  ping:
+  keepalive:
     runs-on: ubuntu-latest
     steps:
+      - name: Ping Vercel Frontend
+        run: |
+          if [ -n "${FRONTEND_URL}" ]; then
+            curl -sS -o /dev/null -w "Frontend HTTP: %{http_code}\n" "${FRONTEND_URL}"
+          else
+            echo "FRONTEND_URL not set"
+          fi
+        env:
+          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+          
+      - name: Ping Render Backend
+        run: |
+          if [ -n "${BACKEND_URL}" ]; then
+            # Pings the root or a dedicated /health endpoint
+            curl -sS -o /dev/null -w "Backend HTTP: %{http_code}\n" "${BACKEND_URL}/api/health"
+          else
+            echo "BACKEND_URL not set"
+          fi
+        env:
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
+
       - name: Ping Supabase REST
         run: |
-          curl -sS -o /dev/null -w "HTTP %{http_code}\n" \
-            "${SUPABASE_URL}/rest/v1/contacts?select=id&limit=1" \
-            -H "apikey: ${SUPABASE_ANON_KEY}" \
-            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}"
+          if [ -n "${SUPABASE_URL}" ] && [ -n "${SUPABASE_ANON_KEY}" ]; then
+            curl -sS -o /dev/null -w "Supabase HTTP: %{http_code}\n" \
+              "${SUPABASE_URL}/rest/v1/employees?select=name&limit=1" \
+              -H "apikey: ${SUPABASE_ANON_KEY}" \
+              -H "Authorization: Bearer ${SUPABASE_ANON_KEY}"
+          else
+            echo "Supabase secrets not set"
+          fi
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
