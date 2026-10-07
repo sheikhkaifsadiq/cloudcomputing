@@ -39,6 +39,7 @@ Rules:
 5. Never claim a mutation succeeded unless the tool returned success.
 6. If the user request is ambiguous, ask for clarification before any mutation.
 7. IMPORTANT: Never call delete_record in the same response as get_records. Always get first, then decide.
+8. CRITICAL: If a tool just executed successfully (like update_record), your response MUST confirm the success to the user. NEVER ignore a successful tool result, and NEVER ask for clarification about a request you just successfully performed in the database.
 """
 
 
