@@ -8,9 +8,11 @@ mermaid.initialize({ startOnLoad: false, theme: 'default' })
 
 function MermaidChart({ chart }) {
   const chartRef = useRef(null)
+  const [isRendering, setIsRendering] = useState(true)
   
   useEffect(() => {
     if (chartRef.current && chart) {
+      setIsRendering(true)
       const hiddenContainer = document.createElement('div')
       hiddenContainer.style.position = 'absolute'
       hiddenContainer.style.visibility = 'hidden'
@@ -27,11 +29,30 @@ function MermaidChart({ chart }) {
           if (hiddenContainer.parentNode) {
             hiddenContainer.parentNode.removeChild(hiddenContainer)
           }
+          setIsRendering(false)
         })
     }
   }, [chart])
 
-  return <div className="mermaid-chart" ref={chartRef} />
+  return (
+    <div style={{ position: 'relative', minHeight: isRendering ? '60px' : 'auto' }}>
+      {isRendering && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '16px' }}>
+          <div className="dot-loading"><span></span><span></span><span></span></div>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>Generating visual...</span>
+        </div>
+      )}
+      <div 
+        className="mermaid-chart" 
+        ref={chartRef} 
+        style={{ 
+          opacity: isRendering ? 0 : 1, 
+          transition: 'opacity 0.4s ease',
+          visibility: isRendering ? 'hidden' : 'visible'
+        }} 
+      />
+    </div>
+  )
 }
 
 function generateId() {
